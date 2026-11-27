@@ -1,0 +1,688 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hotdogs — гонка сосисок за булочкой</title>
+<meta name="description" content="Мультяшная гонка с препятствиями на кухонном столе: ты сосиска, впереди булочка, рядом до семи друзей, которые хотят туда же. Бесплатно для macOS и Windows.">
+<meta property="og:title" content="Hotdogs">
+<meta property="og:description" content="Булочка одна, сосисок много. Добеги первым — получишь майонез.">
+<meta property="og:image" content="https://dzhizhkin.github.io/hotdogs/img/og.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#ae3023">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8C%AD%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800&family=Rubik:wght@700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+	--cream: #fff2df;
+	--paper: #fffaee;
+	--ink: #311b14;
+	--muted: #725447;
+	--border: #d8bca2;
+	--red: #ae3023;
+	--sausage: #db5738;
+	--bun: #f0ad5c;
+	--gold: #ffd584;
+	--cheese: #ffcc40;
+	--pickle: #73c252;
+	--check: rgba(214, 64, 46, .55);
+	--radius: 22px;
+	--display: "Rubik", system-ui, sans-serif;
+	--body: "Nunito", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; overflow-x: clip; }
+body {
+	margin: 0;
+	background: var(--cream);
+	color: var(--ink);
+	font: 700 17px/1.6 var(--body);
+	-webkit-font-smoothing: antialiased;
+	overflow-x: hidden;
+}
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; }
+.wrap { width: min(1160px, 100% - 32px); margin-inline: auto; }
+
+/* Скатерть в клетку */
+.gingham {
+	background-color: var(--paper);
+	background-image:
+		linear-gradient(90deg, var(--check) 50%, transparent 50%),
+		linear-gradient(var(--check) 50%, transparent 50%);
+	background-size: 64px 64px;
+}
+
+/* Шапка */
+.top {
+	position: absolute; inset: 0 0 auto; z-index: 6;
+	display: flex; align-items: center; justify-content: space-between;
+	padding: 20px max(16px, calc((100% - 1160px) / 2));
+}
+.logo {
+	display: inline-flex; gap: 8px; align-items: center;
+	padding: 8px 16px 8px 10px; border-radius: 99px;
+	background: var(--paper); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+	font: 900 18px var(--display); letter-spacing: .02em; text-decoration: none;
+}
+.logo svg { width: 22px; height: 34px; }
+.top nav {
+	display: flex; gap: 4px; padding: 6px; border-radius: 99px;
+	background: var(--paper); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+}
+.top nav a { padding: 6px 14px; border-radius: 99px; text-decoration: none; font-size: 15px; transition: background .2s; }
+.top nav a:hover { background: var(--gold); }
+
+/* Первый экран */
+.hero { position: relative; padding: 130px 0 120px; overflow: hidden; }
+.hero::before {
+	/* Светлое пятно под текстом, чтобы клетка не мешала читать */
+	content: ""; position: absolute; inset: 0;
+	background: radial-gradient(ellipse 60% 70% at 28% 50%, rgba(255, 250, 238, .96) 35%, rgba(255, 250, 238, .55) 70%, transparent 100%);
+}
+.hero-grid {
+	position: relative; display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center;
+}
+.badge {
+	display: inline-block; padding: 7px 16px; border-radius: 99px;
+	background: var(--gold); border: 3px solid var(--ink); box-shadow: 3px 3px 0 var(--ink);
+	font: 800 14px var(--body); letter-spacing: .04em; text-transform: uppercase;
+	transform: rotate(-2deg);
+}
+h1 {
+	margin: 26px 0 0;
+	font: 900 clamp(56px, 9.5vw, 128px)/.9 var(--display); letter-spacing: -.02em;
+	color: var(--sausage);
+	-webkit-text-stroke: 4px var(--ink); paint-order: stroke fill;
+	text-shadow: 7px 7px 0 var(--ink);
+}
+.tagline { margin: 28px 0 0; font: 800 clamp(22px, 2.6vw, 30px)/1.25 var(--display); }
+.tagline em { font-style: normal; color: var(--red); }
+.lead { margin: 18px 0 0; max-width: 520px; color: var(--muted); font-size: 18px; }
+
+.cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 34px; }
+.btn {
+	display: inline-flex; align-items: center; gap: 10px;
+	padding: 15px 24px; border-radius: 16px;
+	font: 800 17px var(--body); text-decoration: none; cursor: pointer;
+	border: 3px solid var(--ink); box-shadow: 5px 5px 0 var(--ink);
+	transition: transform .12s, box-shadow .12s, opacity .2s;
+}
+.btn:hover { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.btn:active { transform: translate(4px, 4px); box-shadow: 1px 1px 0 var(--ink); }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn small { font-weight: 700; opacity: .7; font-size: 14px; }
+.btn-primary { background: var(--sausage); color: #fff; }
+.btn-ghost { background: var(--paper); color: var(--ink); }
+.btn[aria-disabled="true"] { pointer-events: none; opacity: .5; filter: grayscale(1); }
+.meta { margin: 20px 0 0; font-size: 15px; color: var(--muted); }
+.meta b { color: var(--ink); }
+
+/* Картинка-наклейка */
+.sticker {
+	position: relative; padding: 12px; border-radius: 26px;
+	background: var(--paper); border: 4px solid var(--ink); box-shadow: 12px 12px 0 var(--ink);
+	transform: rotate(2.5deg);
+}
+.sticker img { border-radius: 16px; aspect-ratio: 3 / 2; object-fit: cover; width: 100%; }
+.bubble {
+	position: absolute; left: -34px; bottom: 40px;
+	padding: 12px 18px; border-radius: 20px;
+	background: #fff; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+	font: 800 17px var(--display); transform: rotate(-5deg);
+	animation: bob 2.4s ease-in-out infinite;
+}
+.bubble::after {
+	content: ""; position: absolute; right: 30px; bottom: -14px; width: 20px; height: 20px;
+	background: #fff; border-right: 3px solid var(--ink); border-bottom: 3px solid var(--ink);
+	transform: rotate(45deg) skew(10deg, 10deg);
+}
+@keyframes bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -6px; } }
+
+/* Бегущая лента */
+.ticker {
+	position: relative; z-index: 2; margin: -38px 0 0;
+	background: var(--red); color: var(--paper);
+	border-block: 4px solid var(--ink);
+	transform: rotate(-1.6deg); overflow: hidden;
+}
+.ticker-track { display: flex; width: max-content; animation: ticker 28s linear infinite; }
+.ticker span {
+	padding: 14px 0; white-space: nowrap;
+	font: 900 22px var(--display); letter-spacing: .06em; text-transform: uppercase;
+}
+.ticker span::after { content: "✦"; margin: 0 22px; color: var(--gold); }
+@keyframes ticker { to { transform: translateX(-50%); } }
+
+/* Секции */
+section { position: relative; padding: 110px 0; }
+.section-head { max-width: 700px; margin-bottom: 56px; }
+.section-head.center { margin-inline: auto; text-align: center; }
+h2 { margin: 16px 0 0; font: 900 clamp(32px, 4.6vw, 54px)/1.05 var(--display); letter-spacing: -.015em; }
+.section-head p { margin: 18px 0 0; font-size: 19px; color: var(--muted); }
+.tag {
+	display: inline-block; padding: 5px 14px; border-radius: 99px;
+	border: 2.5px solid var(--ink); background: var(--paper);
+	font: 800 13px var(--body); letter-spacing: .06em; text-transform: uppercase;
+}
+.tag.red { background: var(--sausage); color: #fff; }
+.tag.green { background: var(--pickle); }
+.tag.gold { background: var(--gold); }
+
+.card {
+	position: relative; padding: 28px; border-radius: var(--radius);
+	background: var(--paper); border: 3px solid var(--ink); box-shadow: 6px 6px 0 var(--ink);
+}
+.card h3 { margin: 0 0 10px; font: 800 24px/1.2 var(--display); }
+.card p { margin: 0; color: var(--muted); }
+
+/* Как проходит гонка */
+.steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; }
+.steps .card:nth-child(1) { transform: rotate(-1.2deg); }
+.steps .card:nth-child(2) { transform: rotate(.8deg) translateY(14px); }
+.steps .card:nth-child(3) { transform: rotate(-.6deg); }
+.num {
+	display: grid; place-items: center; width: 58px; height: 58px; margin-bottom: 18px;
+	border-radius: 50%; border: 3px solid var(--ink); background: var(--gold);
+	font: 900 26px var(--display);
+}
+.steps .card:nth-child(2) .num { background: var(--pickle); }
+.steps .card:nth-child(3) .num { background: var(--sausage); color: #fff; }
+
+/* Препятствия */
+.obstacles-bg { background: var(--gold); border-block: 4px solid var(--ink); }
+.obstacles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.obstacle { padding: 22px; transition: transform .25s cubic-bezier(.3, 1.6, .5, 1); }
+.obstacle:hover { transform: rotate(-1.5deg) scale(1.03); }
+.obstacle svg { width: 100%; height: 130px; margin-bottom: 16px; }
+.obstacle h3 { font-size: 21px; }
+.obstacle p { font-size: 16px; }
+.note {
+	display: flex; gap: 18px; align-items: center; margin-top: 34px;
+	padding: 18px 22px; border-radius: 18px; border: 3px dashed var(--ink); background: rgba(255, 250, 238, .6);
+}
+.note b { font: 900 30px var(--display); flex: none; }
+.note p { margin: 0; }
+
+/* Толчки и кооператив */
+.feature { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.feature + .feature { margin-top: 110px; }
+.feature.flip > :first-child { order: 2; }
+.feature h2 { font-size: clamp(30px, 4vw, 46px); }
+.feature p { color: var(--muted); font-size: 18px; margin: 18px 0 0; }
+.facts { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 12px; }
+.facts li { display: flex; gap: 12px; align-items: baseline; }
+.facts li::before {
+	content: ""; flex: none; width: 14px; height: 14px; border-radius: 50%; translate: 0 2px;
+	background: var(--sausage); border: 2.5px solid var(--ink);
+}
+
+.shove { display: grid; place-items: center; gap: 22px; padding: 40px 28px; text-align: center; }
+.shove-scene { width: 100%; max-width: 420px; height: auto; }
+.shove-keys { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+.shove-keys div { display: flex; gap: 10px; align-items: center; font-weight: 800; }
+
+.room { padding: 30px; }
+.room-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+.room-head span { color: var(--muted); }
+.code {
+	display: flex; gap: 8px;
+	font: 900 34px var(--display);
+}
+.code i {
+	display: grid; place-items: center; width: 52px; height: 62px; font-style: normal;
+	border-radius: 12px; border: 3px solid var(--ink); background: var(--gold); box-shadow: 3px 3px 0 var(--ink);
+}
+.lineup { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 10px; margin-top: 30px; }
+.lineup figure { margin: 0; display: grid; justify-items: center; gap: 6px; font-size: 14px; }
+.lineup svg { width: 46px; height: 76px; }
+.lineup figure:nth-child(odd) svg { animation: hop 1.6s ease-in-out infinite; }
+.lineup figure:nth-child(even) svg { animation: hop 1.6s ease-in-out .8s infinite; }
+.lineup figure.you figcaption { color: var(--red); }
+@keyframes hop { 0%, 100% { translate: 0 0; } 40% { translate: 0 -8px; } }
+
+/* Управление */
+.keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.key {
+	display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+	border-radius: 18px; background: var(--paper); border: 3px solid var(--ink);
+}
+kbd {
+	min-width: 48px; height: 48px; padding: 0 12px; flex: none;
+	display: inline-grid; place-items: center;
+	font: 900 15px var(--display); color: var(--ink);
+	background: #fff; border: 3px solid var(--ink); border-bottom-width: 7px; border-radius: 12px;
+}
+.key span { line-height: 1.35; }
+
+/* Скачать */
+.download { padding: 120px 0; }
+.download .panel {
+	position: relative; padding: 56px; border-radius: 30px;
+	background: var(--paper); border: 4px solid var(--ink); box-shadow: 12px 12px 0 var(--ink);
+	text-align: center;
+}
+.download h2 { font-size: clamp(34px, 5vw, 60px); }
+.download .panel > p { color: var(--muted); font-size: 19px; margin: 14px 0 0; }
+.platforms { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 44px; text-align: left; }
+.platform { padding: 26px; border-radius: 20px; background: var(--cream); border: 3px solid var(--ink); }
+.platform header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.platform h3 { margin: 0; display: flex; gap: 10px; align-items: center; font: 800 22px var(--display); }
+.platform h3 svg { width: 24px; height: 24px; }
+.platform .size { font-size: 15px; color: var(--muted); }
+.platform .btn { width: 100%; justify-content: center; }
+.platform details { margin-top: 18px; font-size: 15.5px; color: var(--muted); }
+.platform summary { cursor: pointer; color: var(--ink); font-weight: 800; }
+.platform details ol { margin: 10px 0 0; padding-left: 20px; }
+.platform details li { margin: 5px 0; }
+.platform code {
+	font-size: 13.5px; background: #fff; padding: 2px 7px; border-radius: 6px;
+	border: 1.5px solid var(--border); color: var(--ink); word-break: break-all;
+}
+.reqs { margin-top: 28px; font-size: 15px; color: var(--muted); }
+.reqs:empty { display: none; }
+.mascot {
+	position: absolute; right: 44px; top: -64px; width: 64px; height: 104px;
+	transform: rotate(12deg); animation: hop 1.4s ease-in-out infinite;
+}
+
+footer { padding: 40px 0 50px; text-align: center; background: var(--red); color: var(--paper); border-top: 4px solid var(--ink); }
+footer .logo { color: var(--ink); margin-bottom: 18px; }
+footer p { margin: 6px 0; font-size: 15px; }
+footer a { color: var(--gold); }
+
+/* Появление при прокрутке */
+.reveal { opacity: 0; translate: 0 28px; transition: opacity .7s ease, translate .7s cubic-bezier(.2, .8, .2, 1); }
+.reveal.in { opacity: 1; translate: 0 0; }
+
+@media (max-width: 960px) {
+	.top nav { display: none; }
+	.hero { padding: 110px 0 100px; }
+	.hero::before { background: rgba(255, 250, 238, .9); }
+	.hero-grid, .feature { grid-template-columns: 1fr; gap: 48px; }
+	.feature.flip > :first-child { order: 0; }
+	.bubble { left: 10px; bottom: -22px; font-size: 15px; }
+	.steps { grid-template-columns: 1fr; }
+	.steps .card:nth-child(n) { transform: none; }
+	.obstacles { grid-template-columns: 1fr 1fr; }
+	.platforms { grid-template-columns: 1fr; }
+	.download .panel { padding: 40px 20px; }
+	section { padding: 80px 0; }
+}
+@media (max-width: 560px) {
+	h1 { -webkit-text-stroke-width: 3px; text-shadow: 5px 5px 0 var(--ink); }
+	.obstacles { grid-template-columns: 1fr; }
+	.sticker { box-shadow: 8px 8px 0 var(--ink); }
+	.lineup { grid-template-columns: repeat(4, 1fr); }
+	.code i { width: 44px; height: 54px; font-size: 28px; }
+	.mascot { right: 20px; top: -58px; width: 52px; height: 86px; }
+	.note { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	html { scroll-behavior: auto; }
+	.ticker-track, .bubble, .lineup svg, .mascot { animation: none; }
+	.reveal { opacity: 1; translate: 0 0; transition: none; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+	<!-- Сосиска: цвет кожи берётся из color у <use> -->
+	<symbol id="sausage" viewBox="0 0 60 100">
+		<ellipse cx="19" cy="94" rx="9" ry="4.5" fill="#fff" stroke="#311b14" stroke-width="3"/>
+		<ellipse cx="41" cy="94" rx="9" ry="4.5" fill="#fff" stroke="#311b14" stroke-width="3"/>
+		<rect x="11" y="6" width="38" height="84" rx="19" fill="currentColor" stroke="#311b14" stroke-width="3.5"/>
+		<path d="M17 22 Q 19 14 26 12" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+		<circle cx="23" cy="34" r="7.5" fill="#fff" stroke="#311b14" stroke-width="2.5"/>
+		<circle cx="38" cy="34" r="7.5" fill="#fff" stroke="#311b14" stroke-width="2.5"/>
+		<circle cx="25" cy="35" r="3.2" fill="#311b14"/>
+		<circle cx="40" cy="35" r="3.2" fill="#311b14"/>
+		<path d="M21 50 Q 30 60 40 50" fill="#7a2418" stroke="#311b14" stroke-width="2.5" stroke-linejoin="round"/>
+	</symbol>
+</svg>
+
+<header class="top">
+	<a class="logo" href="#"><svg style="color: var(--sausage)"><use href="#sausage"/></svg>HOTDOGS</a>
+	<nav>
+		<a href="#about">Об игре</a>
+		<a href="#track">Трасса</a>
+		<a href="#friends">С друзьями</a>
+		<a href="#download">Скачать</a>
+	</nav>
+</header>
+
+<main>
+	<section class="hero gingham" aria-labelledby="title">
+		<div class="wrap hero-grid">
+			<div>
+				<span class="badge">Гонка с препятствиями</span>
+				<h1 id="title">HOTDOGS</h1>
+				<p class="tagline">Ты — сосиска. Впереди — <em>булочка</em>.<br>Рядом — друзья, которым туда же.</p>
+				<p class="lead">Булочка одна, а желающих много. Скачи по сырным ступенькам, уворачивайся от палки на пицце, не свались с огурца и толкай соседей. Кто первый — того поливают майонезом.</p>
+				<div class="cta">
+					<a class="btn btn-primary" id="cta-main" href="https://github.com/dzhizhkin/hotdogs/releases/latest/download/Hotdogs-macOS.zip" data-platform="macos"></a>
+					<a class="btn btn-ghost" id="cta-alt" href="https://github.com/dzhizhkin/hotdogs/releases/latest/download/Hotdogs-Windows.zip" data-platform="windows"></a>
+				</div>
+				<p class="meta"><b>Бесплатно</b> · macOS и Windows · до 8 игроков</p>
+			</div>
+			<div class="sticker">
+				<img src="img/hero.webp" alt="Сосиска в кедах бежит по столу к светящейся булочке мимо сыра, пиццы и огурцов" width="1600" height="1066" fetchpriority="high">
+				<div class="bubble">Булочка моя!</div>
+			</div>
+		</div>
+	</section>
+
+	<div class="ticker" aria-hidden="true">
+		<div class="ticker-track">
+			<span>Прыгай</span><span>Толкайся</span><span>Не падай со стола</span><span>Залезай в булочку</span><span>Получай майонез</span>
+			<span>Прыгай</span><span>Толкайся</span><span>Не падай со стола</span><span>Залезай в булочку</span><span>Получай майонез</span>
+		</div>
+	</div>
+
+	<section id="about">
+		<div class="wrap">
+			<div class="section-head reveal">
+				<span class="tag red">Об игре</span>
+				<h2>Булочка одна.<br>Сосисок много.</h2>
+				<p>Короткие весёлые забеги по кухонному столу. Без прокачки и обучения на полчаса: выбежал, толкнулся, упал, снова выбежал.</p>
+			</div>
+			<div class="steps reveal">
+				<article class="card">
+					<div class="num">3</div>
+					<h3>3, 2, 1 — старт!</h3>
+					<p>Все сосиски стоят на разделочной доске. Отсчёт, свисток — и толпа несётся вперёд.</p>
+				</article>
+				<article class="card">
+					<div class="num">2</div>
+					<h3>Трасса через весь стол</h3>
+					<p>Сыр, тосты, пицца и огурцы, повороты и подъёмы. Упал — продолжишь с последней опоры, но время уже идёт.</p>
+				</article>
+				<article class="card">
+					<div class="num">1</div>
+					<h3>Прыжок в булочку</h3>
+					<p>Первая сосиска ныряет в булочку и получает свою порцию майонеза. Остальным — реванш.</p>
+				</article>
+			</div>
+		</div>
+	</section>
+
+	<section id="track" class="obstacles-bg">
+		<div class="wrap">
+			<div class="section-head center reveal">
+				<span class="tag">Трасса</span>
+				<h2>Что ждёт на столе</h2>
+				<p>Препятствия выглядят вкусно, но ведут себя подло.</p>
+			</div>
+			<div class="obstacles reveal">
+				<article class="card obstacle">
+					<svg viewBox="0 0 200 130" aria-hidden="true">
+						<g stroke="#311b14" stroke-width="4" stroke-linejoin="round">
+							<path d="M20 118 V 86 H 70 V 118 Z" fill="#ffcc40"/>
+							<path d="M70 118 V 58 H 120 V 118 Z" fill="#ffcc40"/>
+							<path d="M120 118 V 30 H 180 V 118 Z" fill="#ffcc40"/>
+							<path d="M20 86 L 34 76 H 84 L 70 86 Z M70 58 L 84 48 H 134 L 120 58 Z M120 30 L 134 20 H 194 L 180 30 Z" fill="#ffe08a"/>
+						</g>
+						<g fill="#e6a91c">
+							<circle cx="38" cy="102" r="6"/><circle cx="92" cy="80" r="8"/><circle cx="104" cy="104" r="5"/>
+							<circle cx="146" cy="56" r="9"/><circle cx="164" cy="94" r="6"/><circle cx="138" cy="100" r="4"/>
+						</g>
+					</svg>
+					<h3>Сырные ступеньки</h3>
+					<p>Лестница наверх из сыра. Дырки для красоты, проваливаться в них не надо.</p>
+				</article>
+				<article class="card obstacle">
+					<svg viewBox="0 0 200 130" aria-hidden="true">
+						<g stroke="#311b14" stroke-width="4" stroke-linejoin="round">
+							<rect x="14" y="74" width="52" height="40" rx="10" fill="#bd6133"/>
+							<rect x="20" y="80" width="40" height="28" rx="6" fill="#f0ad5c" stroke-width="0"/>
+							<rect x="76" y="46" width="52" height="40" rx="10" fill="#bd6133"/>
+							<rect x="82" y="52" width="40" height="28" rx="6" fill="#f0ad5c" stroke-width="0"/>
+							<rect x="138" y="70" width="52" height="40" rx="10" fill="#bd6133"/>
+							<rect x="144" y="76" width="40" height="28" rx="6" fill="#f0ad5c" stroke-width="0"/>
+						</g>
+						<path d="M44 66 Q 66 20 96 38 M116 38 Q 140 24 160 62" fill="none" stroke="#311b14" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round"/>
+					</svg>
+					<h3>Тосты вразнобой</h3>
+					<p>Ломтики хлеба раскиданы по трассе. Прыгай с одного на другой, пока соседи толкаются.</p>
+				</article>
+				<article class="card obstacle">
+					<svg viewBox="0 0 200 130" aria-hidden="true">
+						<g stroke="#311b14" stroke-width="4">
+							<ellipse cx="100" cy="88" rx="86" ry="34" fill="#f09a42"/>
+							<ellipse cx="100" cy="84" rx="72" ry="26" fill="#ffcc40" stroke-width="0"/>
+						</g>
+						<g fill="#c43a2a" stroke="#311b14" stroke-width="3">
+							<ellipse cx="62" cy="80" rx="11" ry="6"/><ellipse cx="128" cy="94" rx="11" ry="6"/><ellipse cx="146" cy="74" rx="9" ry="5"/>
+						</g>
+						<g transform="rotate(-16 100 64)">
+							<rect x="18" y="56" width="164" height="16" rx="8" fill="#9b5a2e" stroke="#311b14" stroke-width="4"/>
+						</g>
+						<rect x="94" y="62" width="12" height="24" fill="#9b5a2e" stroke="#311b14" stroke-width="3"/>
+						<path d="M176 24 a 30 30 0 0 1 10 26 M26 104 a 30 30 0 0 1 -10 -22" fill="none" stroke="#311b14" stroke-width="3.5" stroke-linecap="round"/>
+					</svg>
+					<h3>Пицца с палкой</h3>
+					<p>Над пиццей крутится палка. Встретишь её лбом — улетишь назад. Или сразу со стола.</p>
+				</article>
+				<article class="card obstacle">
+					<svg viewBox="0 0 200 130" aria-hidden="true">
+						<g stroke="#311b14" stroke-width="4">
+							<ellipse cx="62" cy="70" rx="44" ry="20" fill="#4f9a34"/>
+							<ellipse cx="62" cy="64" rx="44" ry="20" fill="#73c252"/>
+							<ellipse cx="140" cy="96" rx="44" ry="20" fill="#4f9a34"/>
+							<ellipse cx="140" cy="90" rx="44" ry="20" fill="#73c252"/>
+						</g>
+						<g fill="#e9f5c8">
+							<ellipse cx="50" cy="60" rx="4" ry="2.5"/><ellipse cx="74" cy="60" rx="4" ry="2.5"/><ellipse cx="62" cy="70" rx="4" ry="2.5"/>
+							<ellipse cx="128" cy="86" rx="4" ry="2.5"/><ellipse cx="152" cy="86" rx="4" ry="2.5"/><ellipse cx="140" cy="96" rx="4" ry="2.5"/>
+						</g>
+						<path d="M30 28 H 94 M86 20 L 96 28 L 86 36 M170 46 H 108 M116 38 L 106 46 L 116 54" fill="none" stroke="#311b14" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+					<h3>Огурцы на ходу</h3>
+					<p>Кружки огурца ездят поперёк трассы туда-сюда. Не угадал с прыжком — здравствуй, пол.</p>
+				</article>
+			</div>
+			<div class="note reveal">
+				<b>🎲</b>
+				<p>Трасса собирается заново перед каждой гонкой: порядок препятствий, повороты и высота каждый раз другие. Выучить наизусть не выйдет.</p>
+			</div>
+		</div>
+	</section>
+
+	<section id="friends">
+		<div class="wrap">
+			<article class="feature reveal">
+				<div class="card shove">
+					<svg class="shove-scene" viewBox="0 0 420 200" aria-hidden="true">
+						<ellipse cx="210" cy="186" rx="180" ry="10" fill="#311b14" opacity=".12"/>
+						<use href="#sausage" x="70" y="60" width="78" height="130" style="color: #db5738" transform="rotate(-6 109 125)"/>
+						<path d="M150 118 Q 190 100 214 108" fill="none" stroke="#311b14" stroke-width="12" stroke-linecap="round"/>
+						<path d="M150 118 Q 190 100 214 108" fill="none" stroke="#db5738" stroke-width="6" stroke-linecap="round"/>
+						<circle cx="218" cy="108" r="9" fill="#fff" stroke="#311b14" stroke-width="3"/>
+						<g transform="rotate(24 300 140)">
+							<use href="#sausage" x="252" y="58" width="78" height="130" style="color: #e8794f"/>
+						</g>
+						<g stroke="#311b14" stroke-width="4" stroke-linecap="round">
+							<path d="M232 70 L 246 52"/><path d="M244 88 L 266 80"/><path d="M226 54 L 228 34"/>
+						</g>
+						<text x="320" y="46" font-family="Rubik, sans-serif" font-weight="900" font-size="34" fill="#ffd584" stroke="#311b14" stroke-width="7" paint-order="stroke" transform="rotate(10 340 36)">БУМ!</text>
+					</svg>
+					<div class="shove-keys">
+						<div><kbd>E</kbd>толкнуть</div>
+						<div><kbd>Space</kbd>отпрыгнуть</div>
+					</div>
+				</div>
+				<div>
+					<span class="tag red">Толкайся</span>
+					<h2>Вежливые сосиски финишируют последними</h2>
+					<p>Подбеги к сопернику и нажми E: сосиска замахнётся и толкнёт его руками. Особенно хорошо работает у края стола.</p>
+					<p>Видишь, что замахиваются на тебя? Жми пробел и отпрыгни.</p>
+					<ul class="facts">
+						<li>Толчок перезаряжается четыре секунды, так что выбирай момент</li>
+						<li>Тот, кого толкнули, недолго неуязвим, добить сразу не выйдет</li>
+						<li>Боты тоже толкаются. На сложном особенно</li>
+					</ul>
+				</div>
+			</article>
+
+			<article class="feature flip reveal">
+				<div class="card room">
+					<div class="room-head">
+						<span>Код комнаты</span>
+						<div class="code" aria-label="Пример кода комнаты"><i>K</i><i>7</i><i>Q</i><i>X</i></div>
+					</div>
+					<div class="lineup">
+						<figure class="you"><svg style="color: #db5738"><use href="#sausage"/></svg><figcaption>ты</figcaption></figure>
+						<figure><svg style="color: #e8794f"><use href="#sausage"/></svg><figcaption>Колбаскин</figcaption></figure>
+						<figure><svg style="color: #c9452f"><use href="#sausage"/></svg><figcaption>Сарделька</figcaption></figure>
+						<figure><svg style="color: #e06446"><use href="#sausage"/></svg><figcaption>Вася</figcaption></figure>
+						<figure><svg style="color: #d4553c"><use href="#sausage"/></svg><figcaption>Баварская</figcaption></figure>
+						<figure><svg style="color: #ea8a5c"><use href="#sausage"/></svg><figcaption>Кетчуп</figcaption></figure>
+						<figure><svg style="color: #bf3e2b"><use href="#sausage"/></svg><figcaption>Молочная</figcaption></figure>
+						<figure><svg style="color: #e3704c"><use href="#sausage"/></svg><figcaption>Шпикачка</figcaption></figure>
+					</div>
+				</div>
+				<div>
+					<span class="tag green">С друзьями</span>
+					<h2>Восемь сосисок, одна булочка</h2>
+					<p>Создай комнату и скинь друзьям код из четырёх символов. Когда все на месте, хост жмёт Enter, и начинается давка.</p>
+					<ul class="facts">
+						<li>До восьми игроков на одной трассе</li>
+						<li>Без регистрации и аккаунтов: придумал ник и играешь</li>
+						<li>Кто первый, решает хост, так что спорить бесполезно</li>
+						<li>Друзья заняты? Беги против ботов: легко, средне или сложно</li>
+					</ul>
+				</div>
+			</article>
+		</div>
+	</section>
+
+	<section id="controls">
+		<div class="wrap">
+			<div class="section-head reveal">
+				<span class="tag gold">Управление</span>
+				<h2>Кнопок немного</h2>
+			</div>
+			<div class="keys reveal">
+				<div class="key"><kbd>WASD</kbd><span>Бежать, мышь крутит камеру</span></div>
+				<div class="key"><kbd>Shift</kbd><span>Бежать быстрее</span></div>
+				<div class="key"><kbd>Space</kbd><span>Прыжок и отскок от толчка</span></div>
+				<div class="key"><kbd>E</kbd><span>Толкнуть соседа</span></div>
+				<div class="key"><kbd>Enter</kbd><span>Начать гонку, если ты хост</span></div>
+				<div class="key"><kbd>F11</kbd><span>Полный экран или окно</span></div>
+			</div>
+		</div>
+	</section>
+
+	<section id="download" class="download gingham">
+		<div class="wrap">
+			<div class="panel reveal">
+				<svg class="mascot" style="color: var(--sausage)" aria-hidden="true"><use href="#sausage"/></svg>
+				<span class="tag red">Бесплатно</span>
+				<h2>Булочка ждёт</h2>
+				<p>Скачай, распакуй и зови друзей. Кто последний — тот без майонеза.</p>
+				<div class="platforms">
+					<div class="platform">
+						<header>
+							<h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 4.9c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.4-.6 3.1-1.5z"/></svg>macOS</h3>
+							<span class="size" data-size="macos"></span>
+						</header>
+						<a class="btn btn-primary" href="https://github.com/dzhizhkin/hotdogs/releases/latest/download/Hotdogs-macOS.zip" data-platform="macos">Скачать для macOS</a>
+						<details>
+							<summary>Как открыть в первый раз</summary>
+							<ol>
+								<li>Распакуйте архив и перенесите Hotdogs в «Программы».</li>
+								<li>Откройте игру. Если macOS не даёт её запустить, зайдите в Системные настройки → Конфиденциальность и безопасность и нажмите «Всё равно открыть».</li>
+								<li>Либо выполните в Терминале: <code>xattr -dr com.apple.quarantine "/Applications/Hotdogs.app"</code></li>
+							</ol>
+						</details>
+					</div>
+					<div class="platform">
+						<header>
+							<h3><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10.4 4.5v7H3zM11.4 4.4 21 3v8.5h-9.6zM3 12.5h7.4v7L3 18.5zM11.4 12.5H21V21l-9.6-1.4z"/></svg>Windows</h3>
+							<span class="size" data-size="windows"></span>
+						</header>
+						<a class="btn btn-primary" href="https://github.com/dzhizhkin/hotdogs/releases/latest/download/Hotdogs-Windows.zip" data-platform="windows">Скачать для Windows</a>
+						<details>
+							<summary>Как открыть в первый раз</summary>
+							<ol>
+								<li>Распакуйте архив целиком в любую папку и запустите <code>hotdogs.exe</code>. DLL рядом с ним нужны для сетевой игры, не удаляйте их.</li>
+								<li>Если появится окно SmartScreen, нажмите «Подробнее» → «Выполнить в любом случае».</li>
+							</ol>
+						</details>
+					</div>
+				</div>
+				<p class="reqs" id="version"></p>
+				<p class="reqs">Нужна видеокарта с поддержкой Vulkan или Metal. Качество графики игра подбирает сама, поменять его можно в главном меню.</p>
+			</div>
+		</div>
+	</section>
+</main>
+
+<footer>
+	<div class="wrap">
+		<a class="logo" href="#"><svg style="color: var(--sausage)"><use href="#sausage"/></svg>HOTDOGS</a>
+		<p>Сделано на <a href="https://godotengine.org">Godot</a>. Ни одна сосиска не пострадала.</p>
+		<p>© 2026</p>
+	</div>
+</footer>
+
+<script>
+const LABELS = { macos: "macOS", windows: "Windows" };
+// Ссылки на последний релиз GitHub, имена совпадают с архивами из tools/build.sh
+const RELEASES = "https://github.com/dzhizhkin/hotdogs/releases/latest/download";
+const FILES = { macos: "Hotdogs-macOS.zip", windows: "Hotdogs-Windows.zip" };
+const ICONS = {
+	macos: document.querySelector('[data-size="macos"]').previousElementSibling.querySelector("svg").outerHTML,
+	windows: document.querySelector('[data-size="windows"]').previousElementSibling.querySelector("svg").outerHTML,
+};
+
+// Главная кнопка ведёт на систему посетителя, вторая — на другую
+function detectPlatform() {
+	const p = (navigator.userAgentData?.platform || navigator.platform || navigator.userAgent).toLowerCase();
+	if (p.includes("win")) return "windows";
+	return "macos";
+}
+const main = detectPlatform();
+const alt = main === "macos" ? "windows" : "macos";
+const ctaMain = document.getElementById("cta-main");
+const ctaAlt = document.getElementById("cta-alt");
+ctaMain.href = `${RELEASES}/${FILES[main]}`;
+ctaMain.dataset.platform = main;
+ctaMain.innerHTML = `${ICONS[main]}Скачать для ${LABELS[main]} <small data-size="${main}"></small>`;
+ctaAlt.href = `${RELEASES}/${FILES[alt]}`;
+ctaAlt.dataset.platform = alt;
+ctaAlt.innerHTML = `${ICONS[alt]}${LABELS[alt]} <small data-size="${alt}"></small>`;
+
+// builds.json пишет CI при выкладке: размеры архивов и номер сборки.
+// Без него сборок ещё нет, и кнопки становятся заглушками
+function disable(platform) {
+	for (const a of document.querySelectorAll(`a[data-platform="${platform}"]`)) {
+		a.setAttribute("aria-disabled", "true");
+		a.removeAttribute("href");
+	}
+	for (const el of document.querySelectorAll(`[data-size="${platform}"]`)) el.textContent = "скоро";
+}
+fetch("builds.json", { cache: "no-cache" })
+	.then((r) => (r.ok ? r.json() : Promise.reject()))
+	.then((builds) => {
+		for (const platform of Object.keys(LABELS)) {
+			const bytes = builds[platform]?.size;
+			if (!bytes) { disable(platform); continue; }
+			for (const el of document.querySelectorAll(`[data-size="${platform}"]`)) el.textContent = `${Math.round(bytes / 1048576)} МБ`;
+		}
+		const date = new Date(builds.date).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" });
+		document.getElementById("version").textContent = `Сборка ${builds.version} от ${date}`;
+	})
+	.catch(() => Object.keys(LABELS).forEach(disable));
+
+// Появление блоков при прокрутке
+const io = new IntersectionObserver((entries) => {
+	for (const e of entries) if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+}, { threshold: 0.15 });
+document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+</script>
+</body>
+</html>

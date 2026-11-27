@@ -1,0 +1,161 @@
+# При пуше в main собирает игру под macOS и Windows через tools/build.sh,
+# выкладывает архивы новым релизом GitHub и публикует сайт из site/ на GitHub Pages.
+# Нужен секрет репозитория EOS_ENV — полное содержимое локального .env с ключами EOS.
+# Pages включается один раз в настройках репозитория: Source — GitHub Actions.
+name: release
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  workflow_dispatch:
+
+# Новый пуш отменяет незаконченную сборку, чтобы не тратить минуты
+concurrency:
+  group: release
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  build:
+    # Обе платформы собираются на macOS: бандл переподписывается системным codesign,
+    # а в плагине EOS нет библиотек для Linux, без них редактор не грузит расширение
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: macos
+            runner: macos-latest
+            key: Hotdogs-macOS.zip
+          - platform: windows
+            runner: macos-latest
+            key: Hotdogs-Windows.zip
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ключи EOS
+        env:
+          EOS_ENV: ${{ secrets.EOS_ENV }}
+        run: |
+          if [ -z "$EOS_ENV" ]; then
+            echo "::error::Не задан секрет EOS_ENV"
+            exit 1
+          fi
+          printf '%s\n' "$EOS_ENV" > .env
+
+      - name: Проверка рендерера
+        run: |
+          grep -q 'rendering_method="mobile"' project.godot
+          grep -q 'config/features=PackedStringArray("4.7", "Mobile")' project.godot
+
+      - name: Пути Godot
+        run: |
+          if [ "${{ runner.os }}" = macOS ]; then
+            echo "GODOT=$HOME/godot/Godot.app/Contents/MacOS/Godot" >> "$GITHUB_ENV"
+            echo "TEMPLATES=$HOME/Library/Application Support/Godot/export_templates/${GODOT_VERSION}.stable" >> "$GITHUB_ENV"
+          else
+            echo "GODOT=$HOME/godot/godot" >> "$GITHUB_ENV"
+            echo "TEMPLATES=$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable" >> "$GITHUB_ENV"
+          fi
+
+      - name: Кэш Godot
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ${{ env.TEMPLATES }}
+          key: godot-${{ env.GODOT_VERSION }}-${{ runner.os }}
+
+      - name: Установка Godot и шаблонов экспорта
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          if [ "${{ runner.os }}" = macOS ]; then
+            editor="Godot_v${GODOT_VERSION}-stable_macos.universal.zip"
+            sha="shasum -a 512 -c -"
+          else
+            editor="Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+            sha="sha512sum -c -"
+          fi
+          base="https://github.com/godotengine/godot-builds/releases/download/${GODOT_VERSION}-stable"
+          mkdir -p ~/godot && cd ~/godot
+          curl -fsSLO "$base/$editor"
+          curl -fsSLO "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          curl -fsSLO "$base/SHA512-SUMS.txt"
+          grep -E "($editor|Godot_v${GODOT_VERSION}-stable_export_templates\.tpz)$" SHA512-SUMS.txt | $sha
+          unzip -q "$editor"
+          [ "${{ runner.os }}" = macOS ] || mv "Godot_v${GODOT_VERSION}-stable_linux.x86_64" godot
+          mkdir -p "$TEMPLATES"
+          unzip -q "Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          mv templates/* "$TEMPLATES/"
+          rm -rf templates *.zip *.tpz SHA512-SUMS.txt
+
+      - name: Сборка
+        run: sh tools/build.sh ${{ matrix.platform }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.key }}
+          path: build/upload/${{ matrix.key }}
+          compression-level: 0
+          retention-days: 1
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: build-${{ github.run_number }}
+      # Сколько последних релизов хранить, старые удаляются вместе с тегами
+      KEEP_RELEASES: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      # Сайт качает архивы по ссылке releases/latest/download, она всегда ведёт на новый релиз
+      - name: Релиз
+        run: |
+          gh release create "$TAG" dist/Hotdogs-macOS.zip dist/Hotdogs-Windows.zip \
+            --target "$GITHUB_SHA" --latest \
+            --title "Сборка ${{ github.run_number }}" \
+            --notes "Коммит ${GITHUB_SHA::7}: $(git log -1 --format=%s)"
+          gh release list --limit 100 --json tagName,createdAt \
+            --jq "sort_by(.createdAt) | reverse | .[${KEEP_RELEASES}:] | .[].tagName" |
+            xargs -r -n1 gh release delete --yes --cleanup-tag
+
+      - name: Данные о сборке для сайта
+        run: |
+          jq -n \
+            --arg version "${{ github.run_number }}" \
+            --arg date "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson macos "$(stat -c %s dist/Hotdogs-macOS.zip)" \
+            --argjson windows "$(stat -c %s dist/Hotdogs-Windows.zip)" \
+            '{version: $version, date: $date, macos: {size: $macos}, windows: {size: $windows}}' > site/builds.json
+          cat site/builds.json
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: pages
+        uses: actions/deploy-pages@v4
